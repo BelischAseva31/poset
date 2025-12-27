@@ -1,0 +1,99 @@
+const {
+    ChatInputCommandInteraction,
+    SlashCommandBuilder,
+    EmbedBuilder,
+} = require("discord.js");
+const mzrdb = require("croxydb");
+const weightedRandom = require("weighted-random");
+const choices = [
+    { option: "Yazı", weight: 50 },
+    { option: "Tura", weight: 50 },
+];
+
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName("cf")
+        .setDescription("Yazı Tura Oynarsınız")
+        .addIntegerOption((option) =>
+            option
+                .setName("miktar")
+                .setDescription("Oynamak İstediğiniz Miktarı Yazınız")
+                .setRequired(true),
+        ),
+    /**
+     * @param {ChatInputCommandInteraction} interaction
+     */
+    async execute(interaction) {
+        const { user, options } = interaction;
+
+        await interaction.deferReply({ ephemeral: false });
+
+        const bakiye = mzrdb.get(`mzrbakiye.${user.id}`) || 0;
+        const miktar = options.getInteger("miktar");
+        let kazanan;
+        let kaybeden;
+        let seçilen;
+
+        if (miktar > bakiye || !bakiye) {
+            return interaction.editReply({
+                content: `> Bu kadar paran yok. Kendini zengin sanma! Orospu çocuğu bir fakirsin!\n> **Mevcut paran:** ${bakiye}TL`,
+            });
+        }
+
+        const süre = 10000; // 1 dk
+        const sonCf = await mzrdb.fetch(`mzrcftime.${user.id}`);
+        const kalanSüre = süre - (Date.now() - sonCf);
+
+        if (sonCf !== null && süre - (Date.now() - sonCf) > 0) {
+            return interaction.editReply({
+                content: `Şuanda Kumar Oynayamazsın! \nKalan Süre: <t:${Math.floor((Date.now() + kalanSüre) / 1000)}:R>`,
+            });
+        } else {
+            const botSecimi = weightedRandom(
+                choices.map((choice) => choice.weight),
+            );
+            const botunSectigi = choices[botSecimi].option;
+
+            const kullanıcıSecimi = weightedRandom(
+                choices.map((choice) => choice.weight),
+            );
+            const kullanıcıyaSecilen = choices[kullanıcıSecimi].option;
+
+            if (kullanıcıyaSecilen === "Yazı") {
+                seçilen = "📀";
+            } else {
+                seçilen = "💿";
+            }
+
+            await interaction.editReply({
+                content: `**${user.username}** **${miktar}TL** oynadı ve **${seçilen}** seçti!\nCoin çeviriliyor... <a:Keyz:1264326366120116327>`,
+            });
+
+            if (kullanıcıyaSecilen === "Yazı") {
+                kazanan = "📀";
+                kaybeden = "💿";
+            } else {
+                kazanan = "💿";
+                kaybeden = "📀";
+            }
+
+            setTimeout(async () => {
+                if (kullanıcıyaSecilen === botunSectigi) {
+                    await interaction.editReply({
+                        content: `**${user.username}** **${miktar}TL** oynadı ve **${seçilen}** seçti!\nCoin çeviriliyor... **${kazanan}** ohaa **SENSATİONAL!** şansın yaver gitti dostum **${miktar * 2}TL** kazandın!`,
+                    });
+
+                    mzrdb.add(`mzrbakiye.${user.id}`, miktar);
+                    mzrdb.set(`mzrcftime.${user.id}`, Date.now());
+                } else {
+                    await interaction.editReply({
+                        content: `**${user.username}** **${miktar}TL** oynadı ve **${seçilen}** seçti!\nCoin çeviriliyor... **${kaybeden}** **DEDE SANA ACIMADI EVLAT!** dede seni bitirdi! **${miktar}TL** kaybettin!`,
+                    });
+
+                    mzrdb.subtract(`mzrbakiye.${user.id}`, miktar);
+                    mzrdb.set(`mzrcftime.${user.id}`, Date.now());
+                }
+            }, 3000);
+        }
+    },
+};
