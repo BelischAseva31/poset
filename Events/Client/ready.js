@@ -7,11 +7,12 @@ module.exports = {
     once: true,
     execute(client) {
         client.user.setActivity({
-            name: "Şekerin ve O Dedeyin a*ına koyim!",
+            name: "Discord Açılsın! | Şekerci Dede",
             type: ActivityType.Streaming,
-            url: "https://www.twitch.tv/mzrdev",
+            url: "https://www.twitch.tv/yungwbeli",
         });
 
         loadCommands(client).then(() => djs.slashBuilder);
     },
+
 };
