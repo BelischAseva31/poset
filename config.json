@@ -1,10 +1,11 @@
 {
   "DeveloperID": "1046444438597144646",
   "DestekSunucuLink": "https://discord.gg/ZzwQxZx65w",
-  "demirKazmaFiyat": 10000,
-  "elmasKazmaFiyat": 100000,
-  "vergiMiktar": 50,
-  "çalışKazanç": 90,
-  "günlükKazanç": 700,
+  "demirKazmaFiyat": 3000,
+  "elmasKazmaFiyat": 9000,
+  "vergiMiktar": 15,
+  "çalışKazanç": 150,
+  "günlükKazanç": 900,
   "slotLimit": 20
+
 }
