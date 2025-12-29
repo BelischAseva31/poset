@@ -394,6 +394,7 @@ app.listen(port, () => {
   console.log(`Sunucu ${port} numaralı bağlantı noktasında yürütülüyor.`);
 });
 
-client.login(process.env.token);
+client.login(process.env.TOKEN);
 
 // YouTube: @MZRDev tarafından yapılmıştır. Satılması, paylaşılması tamamen yasaktır!
+
