@@ -85,8 +85,11 @@ Günlük paranızı alırsınız
 🪙 **</kaz:0>**
 Kazı yaparak para kazanırsınız.
 
+🪙 **</balıktut:0>**
+Balık tutarak para kazanırsınız.
+
 🪙 **</market:0>**
-Marketten kazma satın alırsınız.`,
+Marketten kazma ve olta satın alırsınız.`,
           inline: true,
         })
         .setTimestamp()
@@ -397,4 +400,5 @@ app.listen(port, () => {
 client.login(process.env.TOKEN);
 
 // YouTube: @MZRDev tarafından yapılmıştır. Satılması, paylaşılması tamamen yasaktır!
+
 
