@@ -13,7 +13,7 @@ const { slotLimit } = require("../../config.json");
 
 // 🔄 SLOT DÖNME EMOJİSİ
 // BURAYA OWo TARZI ANİMASYONLU EMOJİ GELECEK
-const SPIN_EMOJI = "🔄"; // <a:slot_spin:ID>
+const SPIN_EMOJI = "<a:slot:1456618025456373993>"; // <a:slot_spin:ID>
 
 // 🎰 SLOT SEMBOLLERİ
 const SYMBOLS = [
@@ -162,3 +162,4 @@ module.exports = {
         await interaction.editReply({ embeds: [finalEmbed] });
     },
 };
+
