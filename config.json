@@ -3,9 +3,12 @@
   "DestekSunucuLink": "https://discord.gg/ZzwQxZx65w",
   "demirKazmaFiyat": 3000,
   "elmasKazmaFiyat": 9000,
-  "oltaFiyat": 4500,
+  "tahtaOltaFiyat": 1000,
+  "demirOltaFiyat": 2500,
+  "elmasOltaFiyat": 8000,
   "vergiMiktar": 15,
   "çalışKazanç": 150,
   "günlükKazanç": 900,
   "slotLimit": 20
 }
+
