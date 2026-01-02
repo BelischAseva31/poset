@@ -15,13 +15,10 @@ const baliklar = {
 function nadirlikSec(oltaBonus = 1) {
     let rand = mzrdjs.random(1, 100);
     
-    // Daha iyi olta = daha iyi balık şansı
     if (oltaBonus >= 1.5) {
-        // Demir olta: Ender balık şansını azalt, nadir balık şansını artır
         if (rand <= 40) rand = mzrdjs.random(20, 100);
     }
     if (oltaBonus >= 2) {
-        // Elmas olta: Çok nadir balık şansını artır
         if (rand <= 40) rand = mzrdjs.random(30, 100);
     }
     
@@ -30,6 +27,7 @@ function nadirlikSec(oltaBonus = 1) {
         toplam += baliklar[tur].sans;
         if (rand <= toplam) return tur;
     }
+    return "Ender"; // Emniyet kemeri
 }
 
 module.exports = {
@@ -44,35 +42,37 @@ module.exports = {
         await interaction.deferReply({ ephemeral: false });
         
         // 🎣 Olta kontrol
-        const oltaVeri = mzrdb.get(`mzrolta.${user.id}`);
-        if (!oltaVeri) return interaction.editReply("> 🎣 Olta olmadan balık tutamazsın! Markete git.");
+        const oltaVeri = await mzrdb.get(`mzrolta.${user.id}`);
+        if (!oltaVeri) return interaction.editReply("> 🎣 Olta olmadan balık tutamazsın! Markete gidip bir olta almalısın.");
         
-        // Olta türü ve bonusu al
         const oltaTuru = oltaVeri.olta || "Tahta Olta";
         const oltaBonus = oltaVeri.bonus || 1;
         
-        // ⏱️ Cooldown 7 dakika
-        const cooldown = 7 * 60 * 1000;
-        const last = mzrdb.get(`mzrbaliktime.${user.id}`);
-        const kalan = cooldown - (Date.now() - last);
+        // ⏱️ Cooldown Sistemi (Düzeltildi)
+        const cooldown = 7 * 60 * 1000; // 7 dakika
+        const last = await mzrdb.get(`mzrbaliktime.${user.id}`) || 0;
+        const gecenSure = Date.now() - last;
+        const kalan = cooldown - gecenSure;
         
-        if (last && kalan > 0) {
-            return interaction.editReply(`> Balık tutmak için beklemelisin! Kalan: <t:${Math.floor((Date.now() + kalan)/1000)}:R>`);
+        if (last !== 0 && kalan > 0) {
+            return interaction.editReply(`> Balık tutmak için beklemelisin! Kalan: <t:${Math.floor((Date.now() + kalan) / 1000)}:R>`);
         }
         
-        // 🎲 Balık seç (olta bonusuyla)
+        // 🎲 Balık seçimi ve hesaplamalar
         const tur = nadirlikSec(oltaBonus);
         const veri = baliklar[tur];
         const balik = veri.isimler[mzrdjs.random(0, veri.isimler.length - 1)];
         const temelKazanc = mzrdjs.random(veri.min, veri.max);
         const kazanc = Math.floor(temelKazanc * oltaBonus);
         
-        mzrdb.set(`mzrbaliktime.${user.id}`, Date.now());
-        interaction.editReply(`> 🎣 ${oltaTuru} ile olta suya atıldı... Balık bekleniyor...`);
+        // Zamanı kaydet ve ilk mesajı at
+        await mzrdb.set(`mzrbaliktime.${user.id}`, Date.now());
+        await interaction.editReply(`> 🎣 **${oltaTuru}** suya atıldı... Balık bekleniyor...`);
         
-        setTimeout(() => {
-            interaction.editReply(`> 🐟 **${balik}** tuttun!\n> ⭐ Tür: **${tur}**\n> 🎣 Olta: **${oltaTuru}** (x${oltaBonus} bonus)\n> 💰 **${kazanc}TL** kazandın!`);
-            mzrdb.add(`mzrbakiye.${user.id}`, kazanc);
+        // 7 saniye sonra balığı çek
+        setTimeout(async () => {
+            await mzrdb.add(`mzrbakiye.${user.id}`, kazanc);
+            interaction.editReply(`> 🐟 **${balik}** tuttun!\n> ⭐ Tür: **${tur}**\n> 🎣 Olta: **${oltaTuru}** (x${oltaBonus} bonus)\n> 💰 **${kazanc} TL** kazandın!`);
         }, 7000);
     }
 };
