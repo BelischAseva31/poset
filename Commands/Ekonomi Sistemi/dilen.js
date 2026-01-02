@@ -5,11 +5,13 @@ const {
 } = require("discord.js");
 const mzrdb = require("croxydb");
 const mzrdjs = require("mzrdjs");
+
+// Karakter listesi
 const kişi = [
     "Poseidon Dedemiz",
     "MrBeast",
     "Miralvanizm",
-    "Orospu",
+    "Esnaf",
     "Öğrenci",
     "RTE",
 ];
@@ -24,50 +26,79 @@ module.exports = {
     async execute(interaction) {
         const { user } = interaction;
 
+        // Yanıtı erteliyoruz (3 saniyeden uzun sürebilecek işlemler için)
         await interaction.deferReply({ ephemeral: false });
 
-        const süre = 5 * 60 * 1000; // 5dk
-        const sonDilenme = await mzrdb.fetch(`mzrdilenmetime.${user.id}`);
-        const kalanSüre = süre - (Date.now() - sonDilenme);
+        const süre = 5 * 60 * 1000; // 5 dakika
+        const sonDilenme = await mzrdb.get(`mzrdilenmetime.${user.id}`) || 0; // null ise 0 al
+        const gecenSure = Date.now() - sonDilenme;
 
-        if (sonDilenme !== null && süre - (Date.now() - sonDilenme) > 0) {
+        if (gecenSure < süre) {
+            const kalanSüreMs = süre - gecenSure;
             return interaction.editReply({
-                content: `> **5** dakikada bir dilene bilirsin!\n> Kalan Süre: <t:${Math.floor((Date.now() + kalanSüre) / 1000)}:R>`,
+                content: `> **5** dakikada bir dilenebilirsin!\n> Kalan Süre: <t:${Math.floor((Date.now() + kalanSüreMs) / 1000)}:R>`,
             });
-        } else {
-            const randomKişi = kişi[Math.floor(Math.random() * kişi.length)];
-
-            let title = "";
-            let description = "";
-            let color = "Green";
-            let dilen = 0;
-
-            if (randomKişi === "Poseidon Dedemiz") {
-                dilen = mzrdjs.random(10, 15);
-                mzrdb.add(`mzrbakiye.${user.id}`, dilen);
-                title = "OHA DEDE GELDİ!!!";
-                description = `Üzülme ** evlat** seni kurtarmaya geldim al bu **${dilen}TL**'yi hemen hepsini kumara bas unutma **DEDEN HER ZAMAN YANINDA!** :)`;
-                color = "Green";
-            } else {
-                dilen = mzrdjs.random(5, 10);
-                mzrdb.add(`mzrbakiye.${user.id}`, dilen);
-                title = "Güzel Bir Adam Sana Para Verdi :)";
-                description = `Senin yerinde bizde olabilirdik kardeşim **${dilen}TL** varmış onu veriyorum.`;
-                color = "Blue";
-            }
-
-            const mzrEmbed = new EmbedBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .setColor(color)
-                .setTimestamp()
-                .setFooter({
-                    text: user.username,
-                    iconURL: user.displayAvatarURL(),
-                });
-
-            mzrdb.set(`mzrdilenmetime.${user.id}`, Date.now());
-            await interaction.editReply({ embeds: [mzrEmbed] });
         }
+
+        const randomKişi = kişi[Math.floor(Math.random() * kişi.length)];
+
+        let title = "";
+        let description = "";
+        let color = "Green";
+        let dilen = 0;
+
+        // Karakterlere özel senaryolar
+        if (randomKişi === "Poseidon Dedemiz") {
+            dilen = mzrdjs.random(15, 25);
+            title = "⚓ OHA DEDE GELDİ!!!";
+            description = `Üzülme **evlat** seni kurtarmaya geldim al bu **${dilen}TL**'yi hemen hepsini kumara bas unutma **DEDEN YANINDA!** :)`;
+            color = "Green";
+        } 
+        else if (randomKişi === "MrBeast") {
+            dilen = mzrdjs.random(20, 50);
+            title = "🎬 MrBeast Seni Fark Etti!";
+            description = `Kameraya el salla! MrBeast sana tam **${dilen}TL** fırlattı!`;
+            color = "Aqua";
+        }
+        else if (randomKişi === "Miralvanizm") {
+            dilen = mzrdjs.random(10, 20);
+            title = "📜 Bir Filozof Yaklaşıyor...";
+            description = `**Miralvanizm** sana bakıp "Para sadece bir araçtır" dedi ve **${dilen}TL** verdi.`;
+            color = "Purple";
+        }
+        else if (randomKişi === "Öğrenci") {
+            dilen = mzrdjs.random(2, 8);
+            title = "📚 Garibanın Halinden Gariban Anlar";
+            description = `Öğrenci kardeşim KYK bursundan artırdığı **${dilen}TL**'yi sana bıraktı.`;
+            color = "Yellow";
+        }
+        else if (randomKişi === "RTE") {
+            dilen = mzrdjs.random(15, 30);
+            title = "🏰 Saraydan Bir El Uzandı";
+            description = `Konvoy geçerken bir paket çay bekliyordun ama sana **${dilen}TL** verdiler!`;
+            color = "Red";
+        }
+        else {
+            dilen = mzrdjs.random(5, 12);
+            title = "👤 Güzel Bir Adam Sana Para Verdi :)";
+            description = `Cebinde kalan son **${dilen}TL**'yi sana verdi, "İhtiyacın bizden çok" dedi.`;
+            color = "Blue";
+        }
+
+        // Veritabanı güncellemeleri
+        await mzrdb.add(`mzrbakiye.${user.id}`, dilen);
+        await mzrdb.set(`mzrdilenmetime.${user.id}`, Date.now());
+
+        const mzrEmbed = new EmbedBuilder()
+            .setTitle(title)
+            .setDescription(description)
+            .setColor(color)
+            .setTimestamp()
+            .setFooter({
+                text: `${user.username} tarafından istendi`,
+                iconURL: user.displayAvatarURL({ dynamic: true }),
+            });
+
+        await interaction.editReply({ embeds: [mzrEmbed] });
     },
 };
