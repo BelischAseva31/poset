@@ -57,7 +57,7 @@ module.exports = {
         else if (randomKişi === "MrBeast") {
             dilen = mzrdjs.random(20, 50);
             title = "🎬 MrBeast Seni Fark Etti!";
-            description = `Kameraya el salla! MrBeast sana tam **${dilen}TL** fırlattı!`;
+            description = `Kameraya el salla! MrBeast sana tam **${dilen}TL** verdi!`;
             color = "Aqua";
         }
         else if (randomKişi === "Miralvanizm") {
@@ -81,7 +81,7 @@ module.exports = {
         else if (randomKişi === "RTE") {
             dilen = mzrdjs.random(15, 30);
             title = "🏰 Saraydan Bir El Uzandı";
-            description = `Konvoy geçerken bir paket çay bekliyordun ama sana **${dilen}TL** verdiler!`;
+            description = `Konvoy geçerken bir paket çay fırlatılmasını bekliyordun ancak RTE onun yerine **${dilen}TL** verdi!`;
             color = "Red";
         }
 
@@ -102,3 +102,4 @@ module.exports = {
         await interaction.editReply({ embeds: [mzrEmbed] });
     },
 };
+
