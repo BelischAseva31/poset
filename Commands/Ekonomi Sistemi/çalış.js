@@ -5,7 +5,7 @@ const { çalışKazanç } = require('../../config.json');
 module.exports = {
     data: new SlashCommandBuilder()
     .setName('çalış')
-    .setDescription('1 Saat Çalışarak Saatlik Asgeri Ücret Maaşını Alırsın'),
+    .setDescription('1 Saat Çalışarak Saatlik Asgari Ücret Maaşını Alırsın'),
     /**
      * @param {ChatInputCommandInteraction} interaction 
      */
@@ -34,4 +34,5 @@ module.exports = {
             await interaction.reply({ embeds: [mzrEmbed], ephemeral: false });
         }
     },
+
 };
