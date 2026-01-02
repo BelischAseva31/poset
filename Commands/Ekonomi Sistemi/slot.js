@@ -4,99 +4,161 @@ const {
     SlashCommandBuilder,
     EmbedBuilder,
 } = require("discord.js");
-const mzrdb = require("croxydb");
+const db = require("croxydb");
 const { slotLimit } = require("../../config.json");
 
-const slotItems = ["🍬", "🍋", "🍓", "🍒", "🍐"];
-const winRates = {
-    "🍬": 2,
-    "🍋": 2,
-    "🍓": 2,
-    "🍒": 2,
-    "🍐": 2,
+/* =======================
+   SLOT EMOJİLERİ
+   ======================= */
+
+// 🔄 SLOT DÖNME EMOJİSİ
+// BURAYA OWo TARZI ANİMASYONLU EMOJİ GELECEK
+const SPIN_EMOJI = "🔄"; // <a:slot_spin:ID>
+
+// 🎰 SLOT SEMBOLLERİ
+const SYMBOLS = [
+    "🍒", // SYMBOL_CHERRY
+    "🍋", // SYMBOL_LEMON
+    "🍇", // SYMBOL_GRAPE
+    "🍬", // SYMBOL_CANDY
+    "⭐"  // SYMBOL_STAR (RARE)
+];
+
+// 💰 ÇARPANLAR (OWo BENZERİ)
+const MULTIPLIERS = {
+    double: 1.5, // 2 aynı
+    triple: 3.5, // 3 aynı
 };
+
+// ⏱️ SLOT DÖNME SÜRESİ (ms)
+const SPIN_TIME = 2500;
+
+/* =======================
+   KOMUT
+   ======================= */
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("slot")
-        .setDescription("Slot Oynarsınız")
-        .addIntegerOption((option) =>
+        .setDescription("Slot oynarsın")
+        .addIntegerOption(option =>
             option
                 .setName("miktar")
-                .setDescription("Slot Oynamak İstediğin Miktarı Yaz")
-                .setRequired(true),
+                .setDescription("Bahis miktarı")
+                .setRequired(true)
         ),
+
     /**
      * @param {ChatInputCommandInteraction} interaction
      * @param {Client} client
      */
-    async execute(interaction, client) {
-        const { user, options } = interaction;
+    async execute(interaction) {
+        const user = interaction.user;
+        const miktar = interaction.options.getInteger("miktar");
+        const bakiye = db.get(`mzrbakiye.${user.id}`) || 0;
 
-        await interaction.deferReply({ ephemeral: false });
-
-        const bakiye = mzrdb.get(`mzrbakiye.${user.id}`) || 0;
-        let miktar = options.getInteger("miktar");
-        let win = false;
-
-        if (miktar > bakiye || !bakiye) {
-            return interaction.editReply({
-                content: `> Bu kadar paran yok. Kendini zengin sanma! Orospu çocuğu bir fakirsin!\n> **Mevcut paran:** ${bakiye}TL`,
-            });
-        }
+        /* =======================
+           KONTROLLER
+           ======================= */
 
         if (miktar < slotLimit) {
-            return interaction.editReply({
-                content: `> **${miktar}TL** mi ha ha ha AMINA KODUĞUMUN OROSPU ÇOCUĞU SENİ. APTAL FAKİR HERİF! Siktirgit! Çocuk mu kandırıyorsun? Yoksa fakir misin?\n> **Minimum Miktar:** ${slotLimit}TL Biraz ciddi oyna unutma **DEDEN HER DAİM YANINDA!**`,
+            return interaction.reply({
+                content: `❌ Minimum bahis **${slotLimit}TL**`,
+                ephemeral: true,
             });
         }
 
-        const slotResult = [];
-        for (let i = 0; i < 3; i++) {
-            const randomEmoji =
-                slotItems[Math.floor(Math.random() * slotItems.length)];
-            slotResult.push(randomEmoji);
+        if (bakiye < miktar) {
+            return interaction.reply({
+                content: `❌ Yetersiz bakiye. (**${bakiye}TL**)`,
+                ephemeral: true,
+            });
         }
 
-        const resultMessage = slotResult.join(" | ");
+        /* =======================
+           SLOT DÖNÜYOR
+           ======================= */
 
-        let para;
-        if (
-            slotResult[0] === slotResult[1] ||
-            slotResult[1] === slotResult[2]
-        ) {
-            const symbol =
-                slotResult[0] === slotResult[1] ? slotResult[0] : slotResult[1];
-            para = miktar * winRates[symbol];
-            win = true;
-        } else if (
-            slotResult[0] === slotResult[1] &&
-            slotResult[1] === slotResult[2]
-        ) {
-            para = miktar * winRates[slotResult[0]];
-            win = true;
-        }
+        const spinningEmbed = new EmbedBuilder()
+            .setTitle("🎰 SLOTS")
+            .setDescription(
+                `**${user.username}** slot çeviriyor...\n\n` +
+                `╔═══════ 🎰 ═══════╗\n` +
+                `  ${SPIN_EMOJI} | ${SPIN_EMOJI} | ${SPIN_EMOJI}\n` +
+                `╚═════════════════╝`
+            )
+            .setColor("Yellow");
 
-        if (win) {
-            let slotsEmbed1 = new EmbedBuilder()
-                .setTitle(`**Sweat Bonanza 🍬 | Slot Makinesi**`)
-                .setDescription(
-                    `\`${resultMessage}\`\n\n**SENSATİONAL!** Başardın! Bunu biliyordum! **${para}TL** kazandın!`,
-                )
-                .setColor("Green");
+        await interaction.reply({ embeds: [spinningEmbed] });
 
-            await interaction.editReply({ embeds: [slotsEmbed1] });
-            mzrdb.add(`mzrbakiye.${user.id}`, para);
+        // OWo hissi
+        await new Promise(res => setTimeout(res, SPIN_TIME));
+
+        /* =======================
+           KAZANMA ORANLARI
+           %60 kayıp
+           %30 double
+           %10 triple
+           ======================= */
+
+        const chance = Math.random();
+        let result = [];
+        let winType = "lose";
+
+        if (chance <= 0.10) {
+            // 🔥 3 AYNI
+            const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+            result = [sym, sym, sym];
+            winType = "triple";
+        } else if (chance <= 0.40) {
+            // ✅ 2 AYNI
+            const sym = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+            const other = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+            result = [sym, sym, other].sort(() => Math.random() - 0.5);
+            winType = "double";
         } else {
-            let slotsEmbed = new EmbedBuilder()
-                .setTitle(`**Sweat Bonanza 🍬 | Slot Makinesi**`)
-                .setDescription(
-                    `\`${resultMessage}\`\n\n**DEDE SENİ BİTİRDİ EVLAT!** Amına Kodumun cahili nasıl kazanmayı bekliyordun ki? Çoluğunun Çocuğunun rızkını kumara yatır aynen! **(Kumarda Her Zaman Kumarhane Kazanır!)** **${miktar}TL** kaybettin!`,
-                )
-                .setColor("Red");
-
-            await interaction.editReply({ embeds: [slotsEmbed] });
-            mzrdb.subtract(`mzrbakiye.${user.id}`, miktar);
+            // ❌ KAYIP
+            result = [
+                SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+                SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+                SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+            ];
         }
+
+        /* =======================
+           PARA HESAPLAMA
+           ======================= */
+
+        let kazanilan = 0;
+        let resultText = "";
+
+        if (winType === "double") {
+            kazanilan = Math.floor(miktar * MULTIPLIERS.double);
+            db.add(`mzrbakiye.${user.id}`, kazanilan);
+            resultText = `✅ **Kazandın! (2x)**\n+${kazanilan}TL`;
+        } else if (winType === "triple") {
+            kazanilan = Math.floor(miktar * MULTIPLIERS.triple);
+            db.add(`mzrbakiye.${user.id}`, kazanilan);
+            resultText = `🔥 **BÜYÜK KAZANÇ! (3x)**\n+${kazanilan}TL`;
+        } else {
+            db.subtract(`mzrbakiye.${user.id}`, miktar);
+            resultText = `❌ **Kaybettin!**\n-${miktar}TL`;
+        }
+
+        /* =======================
+           SONUÇ
+           ======================= */
+
+        const finalEmbed = new EmbedBuilder()
+            .setTitle("🎰 SLOTS")
+            .setDescription(
+                `╔═══════ 🎰 ═══════╗\n` +
+                `  ${result[0]} | ${result[1]} | ${result[2]}\n` +
+                `╚═════════════════╝\n\n` +
+                resultText
+            )
+            .setColor(winType === "lose" ? "Red" : "Green");
+
+        await interaction.editReply({ embeds: [finalEmbed] });
     },
 };
