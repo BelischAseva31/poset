@@ -6,8 +6,8 @@ const {
 const mzrdb = require("croxydb");
 const mzrdjs = require("mzrdjs");
 
-// Karakter listesi
-const kişi = [
+// Karakter listesi - Buradaki isimlerle aşağıdaki if-else isimleri aynı olmalı
+const karakterler = [
     "Poseidon Dedemiz",
     "MrBeast",
     "Miralvanizm",
@@ -26,11 +26,10 @@ module.exports = {
     async execute(interaction) {
         const { user } = interaction;
 
-        // Yanıtı erteliyoruz (3 saniyeden uzun sürebilecek işlemler için)
         await interaction.deferReply({ ephemeral: false });
 
         const süre = 5 * 60 * 1000; // 5 dakika
-        const sonDilenme = await mzrdb.get(`mzrdilenmetime.${user.id}`) || 0; // null ise 0 al
+        const sonDilenme = await mzrdb.get(`mzrdilenmetime.${user.id}`) || 0;
         const gecenSure = Date.now() - sonDilenme;
 
         if (gecenSure < süre) {
@@ -40,14 +39,15 @@ module.exports = {
             });
         }
 
-        const randomKişi = kişi[Math.floor(Math.random() * kişi.length)];
+        // Rastgele karakter seçimi
+        const randomKişi = karakterler[Math.floor(Math.random() * karakterler.length)];
 
         let title = "";
         let description = "";
         let color = "Green";
         let dilen = 0;
 
-        // Karakterlere özel senaryolar
+        // Karakterlerin hepsini tek tek tanımlıyoruz
         if (randomKişi === "Poseidon Dedemiz") {
             dilen = mzrdjs.random(15, 25);
             title = "⚓ OHA DEDE GELDİ!!!";
@@ -66,6 +66,12 @@ module.exports = {
             description = `**Miralvanizm** sana bakıp "Para sadece bir araçtır" dedi ve **${dilen}TL** verdi.`;
             color = "Purple";
         }
+        else if (randomKişi === "Esnaf") {
+            dilen = mzrdjs.random(5, 15);
+            title = "🥖 Esnaf Abi Acıdı...";
+            description = `Esnaf abi "Siftahı senden bereketi Allah'tan" diyerek sana **${dilen}TL** uzattı.`;
+            color = "Orange";
+        }
         else if (randomKişi === "Öğrenci") {
             dilen = mzrdjs.random(2, 8);
             title = "📚 Garibanın Halinden Gariban Anlar";
@@ -77,12 +83,6 @@ module.exports = {
             title = "🏰 Saraydan Bir El Uzandı";
             description = `Konvoy geçerken bir paket çay bekliyordun ama sana **${dilen}TL** verdiler!`;
             color = "Red";
-        }
-        else {
-            dilen = mzrdjs.random(5, 12);
-            title = "👤 Güzel Bir Adam Sana Para Verdi :)";
-            description = `Cebinde kalan son **${dilen}TL**'yi sana verdi, "İhtiyacın bizden çok" dedi.`;
-            color = "Blue";
         }
 
         // Veritabanı güncellemeleri
