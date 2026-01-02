@@ -4,7 +4,11 @@ const {
     EmbedBuilder,
 } = require("discord.js");
 const mzrdb = require("croxydb");
-const { demirKazmaFiyat, elmasKazmaFiyat } = require("../../config.json");
+const {
+    demirKazmaFiyat,
+    elmasKazmaFiyat,
+    oltaFiyat,
+} = require("../../config.json");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -18,6 +22,7 @@ module.exports = {
                 .addChoices(
                     { name: "Demir Kazma", value: "mzrdemirkazma" },
                     { name: "Elmas Kazma", value: "mzrelmaskazma" },
+                    { name: "Olta", value: "mzrolta" },
                 ),
         ),
     /**
@@ -28,19 +33,20 @@ module.exports = {
 
         await interaction.deferReply({ ephemeral: false });
 
-        const kazma = options.getString("seç");
+        const secim = options.getString("seç");
         const bakiye = mzrdb.get(`mzrbakiye.${user.id}`) || 0;
         const kazmalar = mzrdb.get(`mzrkazma.${user.id}`) || {};
         const buKazma = kazmalar.kazma;
+        const olta = mzrdb.get(`mzrolta.${user.id}`);
         let fiyat;
 
-        if (kazma === "mzrdemirkazma") {
+        // 🪓 DEMİR KAZMA
+        if (secim === "mzrdemirkazma") {
             fiyat = demirKazmaFiyat;
 
             if (fiyat > bakiye || !bakiye) {
                 return interaction.editReply({
-                    content: `> Cüzlanında bu kadar para yok! Bu kazmayı alabilmen için **${fiyat}TL**'ye ihtiyacın var.\n> **Mevcut paran:** ${bakiye}TL`,
-                    ephemeral: true,
+                    content: `> Cüzdanında bu kadar para yok!\n> **Gerekli:** ${fiyat}TL\n> **Mevcut:** ${bakiye}TL`,
                 });
             }
 
@@ -50,46 +56,44 @@ module.exports = {
                 });
             }
 
-            const mzrEmbed = new EmbedBuilder()
+            const embed = new EmbedBuilder()
                 .setTitle("Satın Aldın ✅")
-                .setDescription(
-                    `**${fiyat}TL** vererek bir **Demir Kazma** satın aldın!`,
-                )
+                .setDescription(`**${fiyat}TL** vererek **Demir Kazma** satın aldın!`)
                 .setColor("Green")
                 .setTimestamp()
                 .setFooter({
                     text: "Sweat Bonanza 🍬",
                     iconURL: user.displayAvatarURL(),
                 });
-
-            interaction.editReply({ embeds: [mzrEmbed] });
 
             mzrdb.set(`mzrkazma.${user.id}`, {
                 kazma: "Demir Kazma",
                 fiyat: fiyat,
             });
             mzrdb.subtract(`mzrbakiye.${user.id}`, fiyat);
-        } else if (kazma === "mzrelmaskazma") {
+
+            return interaction.editReply({ embeds: [embed] });
+        }
+
+        // 💎 ELMAS KAZMA
+        else if (secim === "mzrelmaskazma") {
             fiyat = elmasKazmaFiyat;
 
             if (fiyat > bakiye || !bakiye) {
                 return interaction.editReply({
-                    content: `> Cüzlanında bu kadar para yok! Bu kazmayı alabilmen için **${fiyat}TL**'ye ihtiyacın var.\n> **Mevcut paran:** ${bakiye}TL`,
-                    ephemeral: true,
+                    content: `> Cüzdanında bu kadar para yok!\n> **Gerekli:** ${fiyat}TL\n> **Mevcut:** ${bakiye}TL`,
                 });
             }
 
             if (buKazma === "Elmas Kazma") {
                 return interaction.editReply({
-                    content: "> Mevcut bir **Elmas** kazamn bulunuyor!",
+                    content: "> Zaten **Elmas Kazma**n var!",
                 });
             }
 
-            const mzrEmbed = new EmbedBuilder()
+            const embed = new EmbedBuilder()
                 .setTitle("Satın Aldın ✅")
-                .setDescription(
-                    `**${fiyat}TL** vererek bir **Elmas Kazma** satın aldın!`,
-                )
+                .setDescription(`**${fiyat}TL** vererek **Elmas Kazma** satın aldın!`)
                 .setColor("Green")
                 .setTimestamp()
                 .setFooter({
@@ -97,13 +101,45 @@ module.exports = {
                     iconURL: user.displayAvatarURL(),
                 });
 
-            interaction.editReply({ embeds: [mzrEmbed] });
-
             mzrdb.set(`mzrkazma.${user.id}`, {
                 kazma: "Elmas Kazma",
                 fiyat: fiyat,
             });
             mzrdb.subtract(`mzrbakiye.${user.id}`, fiyat);
+
+            return interaction.editReply({ embeds: [embed] });
+        }
+
+        // 🎣 OLTA
+        else if (secim === "mzrolta") {
+            fiyat = oltaFiyat;
+
+            if (fiyat > bakiye || !bakiye) {
+                return interaction.editReply({
+                    content: `> Olta almak için **${fiyat}TL** lazım!\n> **Mevcut paran:** ${bakiye}TL`,
+                });
+            }
+
+            if (olta) {
+                return interaction.editReply({
+                    content: "> Zaten bir oltan var!",
+                });
+            }
+
+            const embed = new EmbedBuilder()
+                .setTitle("Satın Aldın 🎣")
+                .setDescription(`**${fiyat}TL** vererek **Olta** satın aldın!`)
+                .setColor("Blue")
+                .setTimestamp()
+                .setFooter({
+                    text: "Sweat Bonanza 🍬",
+                    iconURL: user.displayAvatarURL(),
+                });
+
+            mzrdb.set(`mzrolta.${user.id}`, true);
+            mzrdb.subtract(`mzrbakiye.${user.id}`, fiyat);
+
+            return interaction.editReply({ embeds: [embed] });
         }
     },
 };
