@@ -1,21 +1,22 @@
-const { ChatInputCommandInteraction, SlashCommandBuilder } = require("discord.js");
+const { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const mzrdb = require("croxydb");
 const mzrdjs = require("mzrdjs");
+const { ceyrekBiletFiyat, yarimBiletFiyat, tamBiletFiyat } = require("../../config.json");
 
-// 🎟️ Ödül tablosu
+// 🎟️ Ödül tablosu (config.json fiyatlarıyla uyumlu)
 const oduller = {
     ceyrek: [
         { isim: "Boş", sans: 30, kazanc: 0 },
-        { isim: "Amorti", sans: 70, kazanc: 200 }
+        { isim: "Amorti", sans: 70, kazanc: ceyrekBiletFiyat }
     ],
     yarim: [
         { isim: "Boş", sans: 20, kazanc: 0 },
-        { isim: "Amorti", sans: 50, kazanc: 400 },
+        { isim: "Amorti", sans: 50, kazanc: yarimBiletFiyat },
         { isim: "Hediye Çeki", sans: 30, kazanc: mzrdjs.random(500, 1500) }
     ],
     tam: [
         { isim: "Boş", sans: 10, kazanc: 0 },
-        { isim: "Amorti", sans: 40, kazanc: 900 },
+        { isim: "Amorti", sans: 40, kazanc: tamBiletFiyat },
         { isim: "Hediye Çeki", sans: 45, kazanc: mzrdjs.random(2000, 5000) },
         { isim: "Araba", sans: 4, kazanc: mzrdjs.random(100000, 250000) },
         { isim: "Büyük Piyango", sans: 1, kazanc: 1000000 }
@@ -56,10 +57,17 @@ module.exports = {
             await mzrdb.add(`mzrbakiye.${user.id}`, odul.kazanc);
         }
 
-        return interaction.editReply(
-            `🎟️ **${tur.toUpperCase()} Bilet** ile çekilişe katıldın!\n` +
-            `🎲 Sonuç: **${odul.isim}**\n` +
-            (odul.kazanc > 0 ? `💰 Kazancın: **${odul.kazanc} TL**` : "😢 Maalesef bir şey kazanamadın.")
-        );
+        return interaction.editReply({
+            embeds: [
+                new EmbedBuilder()
+                    .setTitle("🎰 Piyango Sonucu")
+                    .setDescription(
+                        `🎟️ **${tur.toUpperCase()} Bilet** ile çekilişe katıldın!\n` +
+                        `🎲 Sonuç: **${odul.isim}**\n` +
+                        (odul.kazanc > 0 ? `💰 Kazancın: **${odul.kazanc} TL**` : "😢 Maalesef bir şey kazanamadın.")
+                    )
+                    .setColor(odul.kazanc > 0 ? "Green" : "Red")
+            ]
+        });
     }
 };
