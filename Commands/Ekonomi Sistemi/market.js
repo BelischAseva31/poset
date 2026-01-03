@@ -100,4 +100,4 @@ module.exports = {
             if (bakiye < tamBiletFiyat) return interaction.editReply(`> Yeterli paran yok! (${tamBiletFiyat}TL gerekli)`);
             mzrdb.set(`mzrbilet.${user.id}`, { tur: "tam", fiyat: tamBiletFiyat });
             mzrdb.subtract(`mzrbakiye.${user.id}`, tamBiletFiyat);
-            return interaction.editReply
+            return interaction.editReply({ embeds: [new EmbedBuilder().setTitle("Satın Aldın ✅").setDescription(`🎟️
