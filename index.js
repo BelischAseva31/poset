@@ -61,6 +61,9 @@ client.on("interactionCreate", async (interaction) => {
 🪙 **</bakiye:0>**
 Kendinizin veya başkasının bakiyesine bakarsınız.
 
+🪙 **</fiyat:0>**
+Markette satılan tüm ürünlerin fiyatlarını en güncel şekilde öğrenirsiniz.
+
 🪙 **</bilgi:0>**
 Kendinizin veya başkasının bilgilerine bakarsınız.
 
@@ -403,6 +406,7 @@ app.listen(port, () => {
 client.login(process.env.TOKEN);
 
 // YouTube: @MZRDev tarafından yapılmıştır. Satılması, paylaşılması tamamen yasaktır!
+
 
 
 
