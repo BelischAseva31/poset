@@ -6,9 +6,11 @@
   "tahtaOltaFiyat": 1000,
   "demirOltaFiyat": 2500,
   "elmasOltaFiyat": 8000,
+  "ceyrekBiletFiyat": 200,
+  "yarimBiletFiyat": 400,
+  "tamBiletFiyat": 900,
   "vergiMiktar": 15,
   "çalışKazanç": 150,
   "günlükKazanç": 900,
   "slotLimit": 20
 }
-
