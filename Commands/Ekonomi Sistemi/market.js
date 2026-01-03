@@ -2,6 +2,11 @@ const { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder } = requi
 const mzrdb = require("croxydb");
 const { demirKazmaFiyat, elmasKazmaFiyat, tahtaOltaFiyat, demirOltaFiyat, elmasOltaFiyat } = require("../../config.json");
 
+// 🎟️ Bilet fiyatları
+const ceyrekBiletFiyat = 200;
+const yarimBiletFiyat = 400;
+const tamBiletFiyat = 900;
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("market")
@@ -16,6 +21,9 @@ module.exports = {
                     { name: "Tahta Olta", value: "mzrtahtaolta" },
                     { name: "Demir Olta", value: "mzrdemirolta" },
                     { name: "Elmas Olta", value: "mzrelmasolta" },
+                    { name: "Çeyrek Bilet", value: "mzrceyrekbilet" },
+                    { name: "Yarım Bilet", value: "mzryarimbilet" },
+                    { name: "Tam Bilet", value: "mzrtambilet" },
                 )
         ),
     /**
@@ -27,8 +35,8 @@ module.exports = {
         const bakiye = mzrdb.get(`mzrbakiye.${user.id}`) || 0;
         
         await interaction.deferReply({ ephemeral: false });
-        
-        // KAZMA SİSTEMİ (ESKİ)
+
+        // 🔨 Kazma Sistemi
         if (secim === "mzrdemirkazma") {
             if (bakiye < demirKazmaFiyat) return interaction.editReply(`> Yeterli paran yok! (${demirKazmaFiyat}TL gerekli)`);
             if (mzrdb.get(`mzrkazma.${user.id}`)) return interaction.editReply("> Zaten bir kazman var!");
@@ -45,7 +53,7 @@ module.exports = {
             return interaction.editReply({ embeds: [new EmbedBuilder().setTitle("Satın Aldın ✅").setDescription(`Elmas Kazma aldın! **${elmasKazmaFiyat}TL** gitti.`).setColor("Green")] });
         }
         
-        // OLTA SİSTEMİ (YENİ - 3 TÜRLÜ)
+        // 🎣 Olta Sistemi
         if (secim === "mzrtahtaolta") {
             if (bakiye < tahtaOltaFiyat) return interaction.editReply(`> Yeterli paran yok! (${tahtaOltaFiyat}TL gerekli)`);
             if (mzrdb.get(`mzrolta.${user.id}`)) return interaction.editReply("> Zaten bir oltan var!");
@@ -72,5 +80,24 @@ module.exports = {
             mzrdb.subtract(`mzrbakiye.${user.id}`, elmasOltaFiyat);
             return interaction.editReply({ embeds: [new EmbedBuilder().setTitle("Satın Aldın ✅").setDescription(`🎣 Elmas Olta aldın! **${elmasOltaFiyat}TL** gitti.\n> Bonus: **x2** kazanç`).setColor("Green")] });
         }
-    }
-};
+
+        // 🎟️ Bilet Sistemi
+        if (secim === "mzrceyrekbilet") {
+            if (bakiye < ceyrekBiletFiyat) return interaction.editReply(`> Yeterli paran yok! (${ceyrekBiletFiyat}TL gerekli)`);
+            mzrdb.set(`mzrbilet.${user.id}`, { tur: "ceyrek", fiyat: ceyrekBiletFiyat });
+            mzrdb.subtract(`mzrbakiye.${user.id}`, ceyrekBiletFiyat);
+            return interaction.editReply({ embeds: [new EmbedBuilder().setTitle("Satın Aldın ✅").setDescription(`🎟️ Çeyrek Bilet aldın! **${ceyrekBiletFiyat}TL** gitti.`).setColor("Green")] });
+        }
+
+        if (secim === "mzryarimbilet") {
+            if (bakiye < yarimBiletFiyat) return interaction.editReply(`> Yeterli paran yok! (${yarimBiletFiyat}TL gerekli)`);
+            mzrdb.set(`mzrbilet.${user.id}`, { tur: "yarim", fiyat: yarimBiletFiyat });
+            mzrdb.subtract(`mzrbakiye.${user.id}`, yarimBiletFiyat);
+            return interaction.editReply({ embeds: [new EmbedBuilder().setTitle("Satın Aldın ✅").setDescription(`🎟️ Yarım Bilet aldın! **${yarimBiletFiyat}TL** gitti.`).setColor("Green")] });
+        }
+
+        if (secim === "mzrtambilet") {
+            if (bakiye < tamBiletFiyat) return interaction.editReply(`> Yeterli paran yok! (${tamBiletFiyat}TL gerekli)`);
+            mzrdb.set(`mzrbilet.${user.id}`, { tur: "tam", fiyat: tamBiletFiyat });
+            mzrdb.subtract(`mzrbakiye.${user.id}`, tamBiletFiyat);
+            return interaction.editReply
