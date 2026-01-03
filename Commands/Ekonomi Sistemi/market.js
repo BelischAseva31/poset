@@ -1,11 +1,7 @@
 const { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const mzrdb = require("croxydb");
-const { demirKazmaFiyat, elmasKazmaFiyat, tahtaOltaFiyat, demirOltaFiyat, elmasOltaFiyat } = require("../../config.json");
-
-// 🎟️ Bilet fiyatları
-const ceyrekBiletFiyat = 200;
-const yarimBiletFiyat = 400;
-const tamBiletFiyat = 900;
+const { demirKazmaFiyat, elmasKazmaFiyat, tahtaOltaFiyat, demirOltaFiyat, elmasOltaFiyat,
+        ceyrekBiletFiyat, yarimBiletFiyat, tamBiletFiyat } = require("../../config.json");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -103,3 +99,4 @@ module.exports = {
         }
     }
 };
+
