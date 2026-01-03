@@ -85,6 +85,9 @@ Günlük paranızı alırsınız
 🪙 **</kaz:0>**
 Kazı yaparak para kazanırsınız.
 
+🪙 **</piyango:0>**
+Marketten aldığınız piyango biletleriyle piyango oynarsınız.
+
 🪙 **</balıktut:0>**
 Balık tutarak para kazanırsınız.
 
@@ -400,5 +403,6 @@ app.listen(port, () => {
 client.login(process.env.TOKEN);
 
 // YouTube: @MZRDev tarafından yapılmıştır. Satılması, paylaşılması tamamen yasaktır!
+
 
 
