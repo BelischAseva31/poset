@@ -13,7 +13,7 @@ const { slotLimit } = require("../../config.json");
 
 const SPIN_EMOJI = "<a:slot:1456618025456373993>";
 
-const SYMBOLS = ["🍒", "🍋", "🍇", "🍬", "⭐"];
+const SYMBOLS = ["<:kiraz:1467595392890961931>", "<:oba:1467595388750926024>", "<:slotpara:1467595387459342399>", "<:patlican:1467595384737234964>", "<:kalp:1467595394212167946>"];
 
 // ⏱️ SLOT DÖNME SÜRESİ
 const SPIN_TIME = 2500;
